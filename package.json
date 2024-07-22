@@ -1,0 +1,10 @@
+{
+  "scripts": {
+    "start": "dotenvx run -f .env.local -- node index.js"
+  },
+  "dependencies": {
+    "@dotenvx/dotenvx": "^1.6.4",
+    "chromedriver": "^126.0.5",
+    "selenium-webdriver": "^4.23.0"
+  }
+}
