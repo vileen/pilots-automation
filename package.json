@@ -5,6 +5,7 @@
   "dependencies": {
     "@dotenvx/dotenvx": "^1.6.4",
     "chromedriver": "^126.0.5",
+    "csv-writer": "^1.6.0",
     "selenium-webdriver": "^4.23.0"
   }
 }
