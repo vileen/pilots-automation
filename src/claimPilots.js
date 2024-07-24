@@ -63,7 +63,7 @@ const waitForPilotsToBeClaimable = async (driver) => {
     // add driver wait for " Select All " button to be visible
     const selectAllText = ' Select All '; // The text you are looking for
     const selectAllLocator = By.xpath(`//*[text()='${selectAllText}']`);
-    await getElementWithWait(driver, selectAllLocator, 60000 * 10);
+    await getElementWithWait(driver, selectAllLocator, 60000 * 5);
 }
 
 const counts = [

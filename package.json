@@ -7,6 +7,7 @@
     "@dotenvx/dotenvx": "^1.6.4",
     "chromedriver": "^126.0.5",
     "csv-writer": "^1.6.0",
+    "node-cron": "^3.0.3",
     "selenium-webdriver": "^4.23.0"
   }
 }

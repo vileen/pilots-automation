@@ -7,6 +7,7 @@ const { claimPilots } = require("./src/claimPilots");
 const { sendPilots } = require("./src/sendPilots");
 const { buyOutPilots } = require("./src/buyOutPilots");
 const { saveDataToCsv } = require("./src/saveToCsv");
+const cron = require('node-cron');
 
 // Path to the Phantom wallet extension .crx file
 const extensionPath = path.resolve('./files/phantom.crx');
@@ -77,4 +78,9 @@ async function sendPilotsToMissions() {
     }
 }
 
-sendPilotsToMissions();
+// Schedule a task to run every 4 hours
+cron.schedule('0 */4 * * *', () => {
+    console.log(`Running cron job at ${new Date().toISOString()}`);
+
+    sendPilotsToMissions();
+});
