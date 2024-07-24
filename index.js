@@ -15,6 +15,7 @@ const extensionPath = path.resolve('./files/phantom.crx');
 const options = new chrome.Options();
 options.addExtensions(extensionPath);
 options.addArguments('--no-sandbox');
+options.addArguments('--disable-dev-shm-usage');
 options.addArguments('--headless=new'); // comment for debugging
 
 const extensionId = "bfnaelmomeimhlpmgjnjophhpkkoljpa"; // chrome.management.getAll() code is not working, so I hardcoded it
