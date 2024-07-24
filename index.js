@@ -14,6 +14,7 @@ const extensionPath = path.resolve('./files/phantom.crx');
 // Configure Chrome options to load the extension
 const options = new chrome.Options();
 options.addExtensions(extensionPath);
+options.addArguments('--no-sandbox');
 options.addArguments('--headless=new'); // comment for debugging
 
 const extensionId = "bfnaelmomeimhlpmgjnjophhpkkoljpa"; // chrome.management.getAll() code is not working, so I hardcoded it
