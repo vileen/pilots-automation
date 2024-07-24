@@ -11,7 +11,7 @@ async function retrievePilots(driver) {
     await switchToEnforcersTab(driver);
     await getAllPilotsFromTab(driver, counts);
 
-    await changeUrl(driver, 'https://v2.taiyopilots.com/'); // back to home page
+    return counts;
 }
 
 async function getAllPilotsFromTab(driver) {

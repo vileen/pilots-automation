@@ -70,15 +70,15 @@ async function switchToEnforcersTab(driver) {
 }
 
 async function reconnectInitialisedWallet(driver) {
-    try {
-        const selectWalletText = " Select Wallet "; // for whatever reason they put spaces in the text...
-        const selectWalletButtonLocator = By.xpath(`//*[text()='${selectWalletText}']`);
-        const selectWalletButton = await getElementWithWait(driver, selectWalletButtonLocator, 5000);
-        await selectWalletButton.click();
-
-        await driver.sleep(2000);
-    } catch(err) {
-    }
+    // try {
+    //     const selectWalletText = " Select Wallet "; // for whatever reason they put spaces in the text...
+    //     const selectWalletButtonLocator = By.xpath(`//*[text()='${selectWalletText}']`);
+    //     const selectWalletButton = await getElementWithWait(driver, selectWalletButtonLocator, 5000);
+    //     await selectWalletButton.click();
+    //
+    //     await driver.sleep(2000);
+    // } catch(err) {
+    // }
 
     try {
         const connectText = "Connect";

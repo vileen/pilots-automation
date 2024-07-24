@@ -15,8 +15,6 @@ async function sendPilots(driver) {
     await switchToEnforcersTab(driver);
 
     await sendForTab(driver);
-
-    await changeUrl(driver, 'https://v2.taiyopilots.com/'); // back to home page
 }
 
 async function sendForTab(driver) {

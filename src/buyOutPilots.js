@@ -15,8 +15,6 @@ async function buyOutPilots(driver, counts) {
     if (hasCapturedPilots) {
         await redeemPilots(driver, "Captured");
     }
-
-    await changeUrl(driver, 'https://v2.taiyopilots.com'); // back to home
 }
 
 async function redeemPilots(driver, kind) {
@@ -36,7 +34,8 @@ async function redeemPilots(driver, kind) {
 
     await switchToPopupConfirmAndBack(driver, false);
 
-    // TODO test again, it couldnt find ok last time
+    await driver.sleep(2000)
+
     const okText = 'OK';
     const okLocator = By.xpath(`//*[text()='${okText}']`);
     const okElement = await getElementWithWait(driver, okLocator);
