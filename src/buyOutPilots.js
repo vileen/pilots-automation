@@ -2,18 +2,22 @@ const { By} = require("selenium-webdriver");
 const { getElementWithWait, getElementsWithWait, switchToPopupConfirmAndBack, changeUrl} = require("./utils");
 
 async function buyOutPilots(driver, counts) {
-    await changeUrl(driver, 'https://v2.taiyopilots.com/graveyard'); // to graveyard
+    try {
+        await changeUrl(driver, 'https://v2.taiyopilots.com/graveyard'); // to graveyard
 
-    const hasKilledPilots = counts.find(group => group.name === "Killed").count > 0;
+        const hasKilledPilots = counts.find(group => group.name === "Killed").count > 0;
 
-    if (hasKilledPilots) {
-        await redeemPilots(driver, "Killed");
-    }
+        if (hasKilledPilots) {
+            await redeemPilots(driver, "Killed");
+        }
 
-    const hasCapturedPilots = counts.find(group => group.name === "Captured").count > 0;
+        const hasCapturedPilots = counts.find(group => group.name === "Captured").count > 0;
 
-    if (hasCapturedPilots) {
-        await redeemPilots(driver, "Captured");
+        if (hasCapturedPilots) {
+            await redeemPilots(driver, "Captured");
+        }
+    } catch(err) {
+      console.error(err);
     }
 }
 

@@ -2,19 +2,23 @@ const { By } = require("selenium-webdriver");
 const { getElementWithWait, switchToPopupConfirmAndBack, switchToEnforcersTab, changeUrl} = require("./utils");
 
 async function sendPilots(driver) {
-    console.log("sending pilots");
+    try {
+        console.log("sending pilots");
 
-    await changeUrl(driver, 'https://v2.taiyopilots.com/pve/operators');
+        await changeUrl(driver, 'https://v2.taiyopilots.com/pve/operators');
 
-    const deployPilotsText = 'Deploy Pilots'; // The text you are looking for
-    const deployPilotsLocator = By.xpath(`//*[text()='${deployPilotsText}']`);
-    await getElementWithWait(driver, deployPilotsLocator);
+        const deployPilotsText = 'Deploy Pilots'; // The text you are looking for
+        const deployPilotsLocator = By.xpath(`//*[text()='${deployPilotsText}']`);
+        await getElementWithWait(driver, deployPilotsLocator);
 
-    await sendForTab(driver);
+        await sendForTab(driver);
 
-    await switchToEnforcersTab(driver);
+        await switchToEnforcersTab(driver);
 
-    await sendForTab(driver);
+        await sendForTab(driver);
+    } catch(err) {
+      console.error(err);
+    }
 }
 
 async function sendForTab(driver) {

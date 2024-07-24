@@ -3,13 +3,17 @@ const { By } = require("selenium-webdriver");
 const { countResults } = require("./countResults");
 
 async function claimPilots(driver) {
-    console.log("retrieving pilots");
+    try {
+        console.log("retrieving pilots");
 
-    await changeUrl(driver, 'https://v2.taiyopilots.com/pve/operators');
+        await changeUrl(driver, 'https://v2.taiyopilots.com/pve/operators');
 
-    await getAllPilotsFromTab(driver);
-    await switchToEnforcersTab(driver);
-    await getAllPilotsFromTab(driver, counts);
+        await getAllPilotsFromTab(driver);
+        await switchToEnforcersTab(driver);
+        await getAllPilotsFromTab(driver, counts);
+    } catch(err) {
+      console.error(err);
+    }
 
     return counts;
 }
