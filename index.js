@@ -84,3 +84,4 @@ cron.schedule('0 */4 * * *', () => {
 
     sendPilotsToMissions();
 });
+console.log("App started");
