@@ -2,7 +2,7 @@ const { switchToEnforcersTab, getElementsWithWait, getElementWithWait, switchToP
 const { By } = require("selenium-webdriver");
 const { countResults } = require("./countResults");
 
-async function retrievePilots(driver) {
+async function claimPilots(driver) {
     console.log("retrieving pilots");
 
     await changeUrl(driver, 'https://v2.taiyopilots.com/pve/operators');
@@ -15,6 +15,8 @@ async function retrievePilots(driver) {
 }
 
 async function getAllPilotsFromTab(driver) {
+    await waitForPilotsToBeClaimable(driver);
+
     const selectAllText = ' Select All '; // The text you are looking for
     const selectAllLocator = By.xpath(`//*[text()='${selectAllText}']`);
     const selectAllElements = await getElementsWithWait(driver, selectAllLocator);
@@ -57,6 +59,13 @@ async function getAllPilotsFromTab(driver) {
     await okElement.click();
 }
 
+const waitForPilotsToBeClaimable = async (driver) => {
+    // add driver wait for " Select All " button to be visible
+    const selectAllText = ' Select All '; // The text you are looking for
+    const selectAllLocator = By.xpath(`//*[text()='${selectAllText}']`);
+    await getElementWithWait(driver, selectAllLocator, 60000 * 5);
+}
+
 const counts = [
     {
         name: "Killed",
@@ -89,5 +98,5 @@ const counts = [
 ];
 
 module.exports = {
-    retrievePilots
+    claimPilots
 }

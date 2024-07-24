@@ -3,7 +3,7 @@ const { Builder } = require('selenium-webdriver');
 const chrome = require('selenium-webdriver/chrome');
 const path = require('path');
 const { setupWallet, connectToApp } = require("./src/init");
-const { retrievePilots } = require("./src/retrievePilots");
+const { claimPilots } = require("./src/claimPilots");
 const { sendPilots } = require("./src/sendPilots");
 const { buyOutPilots } = require("./src/buyOutPilots");
 const { saveDataToCsv } = require("./src/saveToCsv");
@@ -58,7 +58,7 @@ async function sendPilotsToMissions() {
             if (isConnected) {
                 console.log("starting");
 
-                const counts = await retrievePilots(driver);
+                const counts = await claimPilots(driver);
                 await buyOutPilots(driver, counts);
                 await sendPilots(driver);
                 await saveDataToCsv(counts);
