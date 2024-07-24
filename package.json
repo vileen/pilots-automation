@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "start": "dotenvx run -f .env.local -- node index.js"
+    "start": ""
   },
   "dependencies": {
     "@dotenvx/dotenvx": "^1.6.4",
