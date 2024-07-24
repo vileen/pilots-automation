@@ -1,4 +1,4 @@
-const { switchToEnforcersTab, getElementsWithWait, getElementWithWait, switchToPopupConfirmAndBack, changeUrl } = require("./utils");
+const { navigateBackHome, switchToEnforcersTab, getElementsWithWait, getElementWithWait, switchToPopupConfirmAndBack, findElementByTextAndClick } = require("./utils");
 const { By } = require("selenium-webdriver");
 const { countResults } = require("./countResults");
 
@@ -6,11 +6,13 @@ async function claimPilots(driver) {
     try {
         console.log("retrieving pilots");
 
-        await changeUrl(driver, 'https://v2.taiyopilots.com/pve/operators');
+        await findElementByTextAndClick(driver, "Operators Hub");
 
         await getAllPilotsFromTab(driver);
         await switchToEnforcersTab(driver);
         await getAllPilotsFromTab(driver, counts);
+
+        await navigateBackHome(driver);
     } catch(err) {
       console.error(err);
     }
@@ -29,10 +31,7 @@ async function getAllPilotsFromTab(driver) {
     const selectElement = selectAllElements.length === 2 ? selectAllElements[1] : selectAllElements[0];
     await selectElement.click();
 
-    const claimText = 'Claim';
-    const claimLocator = By.xpath(`//*[text()='${claimText}']`);
-    const claimElement = await getElementWithWait(driver, claimLocator);
-    await claimElement.click();
+    await findElementByTextAndClick(driver, 'Claim');
 
     const claimPilotsText = ' Claim Pilots ';
     const claimPilotsLocator = By.xpath(`//*[text()='${claimPilotsText}']`);
@@ -57,10 +56,7 @@ async function getAllPilotsFromTab(driver) {
 
     await switchToPopupConfirmAndBack(driver, false, pilotsClaimedMessageCheck);
 
-    const okText = 'OK';
-    const okLocator = By.xpath(`//*[text()='${okText}']`);
-    const okElement = await getElementWithWait(driver, okLocator);
-    await okElement.click();
+    await findElementByTextAndClick(driver, 'OK');
 }
 
 const waitForPilotsToBeClaimable = async (driver) => {

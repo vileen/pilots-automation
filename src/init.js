@@ -1,18 +1,11 @@
 const { By } = require("selenium-webdriver");
-const { getElementWithWait, switchToPopupConfirmAndBack} = require("./utils");
+const { getElementWithWait, switchToPopupConfirmAndBack, findElementByTextAndClick} = require("./utils");
 
 async function setupWallet(driver) {
     console.log("setting up wallet");
     try {
-        const importExistingText = "Import an existing wallet";
-        const importExistingLocator = By.xpath(`//*[text()='${importExistingText}']`);
-        const importExistingButton = await getElementWithWait(driver, importExistingLocator);
-        await importExistingButton.click();
-
-        const importByKeyText = "Import Private Key";
-        const importByKeyLocator = By.xpath(`//*[text()='${importByKeyText}']`);
-        const importByKeyButton = await getElementWithWait(driver, importByKeyLocator);
-        await importByKeyButton.click();
+        await findElementByTextAndClick(driver, "Import an existing wallet");
+        await findElementByTextAndClick(driver, "Import Private Key");
 
         // Define the placeholder text and the input value
         const namePlaceholderText = 'Name'; // The placeholder attribute value
@@ -36,10 +29,7 @@ async function setupWallet(driver) {
         // Type into the input element
         await privateKeyInputElement.sendKeys(privateKeyValue);
 
-        const importButtonText = "Import";
-        const importButtonLocator = By.xpath(`//*[text()='${importButtonText}']`);
-        const importButton = await getElementWithWait(driver, importButtonLocator);
-        await importButton.click();
+        await findElementByTextAndClick(driver, "Import");
 
         // Define the placeholder text and the input value
         const passwordPlaceholderText = 'Password'; // The placeholder attribute value
@@ -88,27 +78,18 @@ async function setupWallet(driver) {
 async function connectToApp(driver) {
     console.log("connecting to app");
 
-    const selectWalletText = " Select Wallet "; // for whatever reason they put spaces in the text...
-    const selectWalletButtonLocator = By.xpath(`//*[text()='${selectWalletText}']`);
-    const selectWalletButton = await getElementWithWait(driver, selectWalletButtonLocator, 60000);
-    await selectWalletButton.click();
+    await findElementByTextAndClick(driver, " Select Wallet ", 60000);
 
     await driver.sleep(1000);
 
     const connectWalletLocator = By.xpath(`//*[text()='Connect Wallet']`);
     await getElementWithWait(driver, connectWalletLocator);
 
-    const phantomWalletText = "Phantom";
-    const phantomWalletLocator = By.xpath(`//*[text()='${phantomWalletText}']`);
-    const phantomWalletButton = await getElementWithWait(driver, phantomWalletLocator);
-    await phantomWalletButton.click();
+    await findElementByTextAndClick(driver, "Phantom");
 
     await driver.sleep(2000); // Wait for the connection to be established
 
-    const connectText = "Connect";
-    const connectLocator = By.xpath(`//*[text()='${connectText}']`);
-    const connectButton = await getElementWithWait(driver, connectLocator);
-    await connectButton.click();
+    await findElementByTextAndClick(driver, "Connect");
 
     await switchToPopupConfirmAndBack(driver);
 

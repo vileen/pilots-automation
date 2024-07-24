@@ -1,11 +1,11 @@
 const { By } = require("selenium-webdriver");
-const { getElementWithWait, switchToPopupConfirmAndBack, switchToEnforcersTab, changeUrl} = require("./utils");
+const { navigateBackHome, getElementWithWait, switchToPopupConfirmAndBack, switchToEnforcersTab, findElementByTextAndClick } = require("./utils");
 
 async function sendPilots(driver) {
     try {
         console.log("sending pilots");
 
-        await changeUrl(driver, 'https://v2.taiyopilots.com/pve/operators');
+        await findElementByTextAndClick(driver, "Operators Hub");
 
         const deployPilotsText = 'Deploy Pilots'; // The text you are looking for
         const deployPilotsLocator = By.xpath(`//*[text()='${deployPilotsText}']`);
@@ -16,16 +16,15 @@ async function sendPilots(driver) {
         await switchToEnforcersTab(driver);
 
         await sendForTab(driver);
+
+        await navigateBackHome(driver);
     } catch(err) {
       console.error(err);
     }
 }
 
 async function sendForTab(driver) {
-    const sendAllPilotsText = ' Select All ';
-    const sendAllPilotsLocator = By.xpath(`//*[text()='${sendAllPilotsText}']`);
-    const sendAllPilotsButton = await getElementWithWait(driver, sendAllPilotsLocator);
-    await sendAllPilotsButton.click();
+    await findElementByTextAndClick(driver, ' Select All ');
 
     await driver.sleep(1000);
 
@@ -44,23 +43,17 @@ async function sendForTab(driver) {
         }
     }
 
-    const iUnderstandText = 'I understand';
-    const iUnderstandLocator = By.xpath(`//*[text()='${iUnderstandText}']`);
-    const iUnderstandButton = await getElementWithWait(driver, iUnderstandLocator);
-    await iUnderstandButton.click();
+    await findElementByTextAndClick(driver, 'I understand');
 
     const noPilotsMessageCheck = async () => {
         const noPilotsText = 'No Usable Pilots';
         const noPilotsLocator = By.xpath(`//*[text()='${noPilotsText}']`);
-        await getElementWithWait(driver, noPilotsLocator, 60000);
+        await getElementWithWait(driver, noPilotsLocator, 60000 * 2);
     }
 
     await switchToPopupConfirmAndBack(driver, false, noPilotsMessageCheck);
 
-    const okText = 'OK';
-    const okLocator = By.xpath(`//*[text()='${okText}']`);
-    const okElement = await getElementWithWait(driver, okLocator);
-    await okElement.click();
+    await findElementByTextAndClick(driver, 'OK');
 }
 
 module.exports = {

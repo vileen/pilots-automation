@@ -1,9 +1,9 @@
 const { By} = require("selenium-webdriver");
-const { getElementWithWait, getElementsWithWait, switchToPopupConfirmAndBack, changeUrl} = require("./utils");
+const { navigateBackHome, getElementsWithWait, switchToPopupConfirmAndBack, findElementByTextAndClick } = require("./utils");
 
 async function buyOutPilots(driver, counts) {
     try {
-        await changeUrl(driver, 'https://v2.taiyopilots.com/graveyard'); // to graveyard
+        await findElementByTextAndClick(driver, "Graveyard");
 
         const hasKilledPilots = counts.find(group => group.name === "Killed").count > 0;
 
@@ -16,6 +16,8 @@ async function buyOutPilots(driver, counts) {
         if (hasCapturedPilots) {
             await redeemPilots(driver, "Captured");
         }
+
+        await navigateBackHome(driver);
     } catch(err) {
       console.error(err);
     }
@@ -31,19 +33,13 @@ async function redeemPilots(driver, kind) {
 
     await selectAllButtons[0].click();
 
-    const releaseText = kind === "Killed" ? "Revive" : "Release";
-    const releaseLocator = By.xpath(`//*[text()='${releaseText}']`);
-    const releaseElement =  await getElementWithWait(driver, releaseLocator);
-    await releaseElement.click();
+    await findElementByTextAndClick(driver, kind === "Killed" ? "Revive" : "Release");
 
     await switchToPopupConfirmAndBack(driver, false);
 
     await driver.sleep(2000)
 
-    const okText = 'OK';
-    const okLocator = By.xpath(`//*[text()='${okText}']`);
-    const okElement = await getElementWithWait(driver, okLocator);
-    await okElement.click();
+    await findElementByTextAndClick(driver, 'OK');
 }
 
 module.exports = {

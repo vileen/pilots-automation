@@ -1,4 +1,4 @@
-const { until, By} = require('selenium-webdriver');
+const { until, By } = require('selenium-webdriver');
 
 const DEFAULT_TIMEOUT = 10000; // 10 seconds
 
@@ -69,35 +69,23 @@ async function switchToEnforcersTab(driver) {
     await checkbox.click();
 }
 
-async function reconnectInitialisedWallet(driver) {
-    // try {
-    //     const selectWalletText = " Select Wallet "; // for whatever reason they put spaces in the text...
-    //     const selectWalletButtonLocator = By.xpath(`//*[text()='${selectWalletText}']`);
-    //     const selectWalletButton = await getElementWithWait(driver, selectWalletButtonLocator, 5000);
-    //     await selectWalletButton.click();
-    //
-    //     await driver.sleep(2000);
-    // } catch(err) {
-    // }
+async function findElementByTextAndClick(driver, text, timeout) {
+    const elementLocator = By.xpath(`//*[text()='${text}']`);
+    const element = await getElementWithWait(driver, elementLocator, timeout);
 
-    try {
-        const connectText = "Connect";
-        const connectLocator = By.xpath(`//*[text()='${connectText}']`);
-        const connectButton = await getElementWithWait(driver, connectLocator, 5000);
-        await connectButton.click();
-    } catch(err) {
-    }
+    return element.click();
 }
 
-async function changeUrl(driver, url) {
-    await driver.get(url); // to graveyard
+async function navigateBackHome(driver) {
+    const homeIconLocator = By.xpath('//*[@alt="Home Icon"]');
+    const homeIconElement = await getElementWithWait(driver, homeIconLocator);
 
-    await reconnectInitialisedWallet(driver);
-
+    return homeIconElement.click();
 }
 
 module.exports = {
-    changeUrl,
+    findElementByTextAndClick,
+    navigateBackHome,
     getElementWithWait,
     getElementsWithWait,
     switchToEnforcersTab,
