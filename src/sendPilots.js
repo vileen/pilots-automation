@@ -16,10 +16,10 @@ async function sendPilots(driver) {
         await switchToEnforcersTab(driver);
 
         await sendForTab(driver);
-
-        await navigateBackHome(driver);
     } catch(err) {
       console.error(err);
+    } finally {
+        await navigateBackHome(driver);
     }
 }
 

@@ -16,10 +16,10 @@ async function buyOutPilots(driver, counts) {
         if (hasCapturedPilots) {
             await redeemPilots(driver, "Captured");
         }
-
-        await navigateBackHome(driver);
     } catch(err) {
       console.error(err);
+    } finally {
+        await navigateBackHome(driver);
     }
 }
 

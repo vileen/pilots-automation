@@ -11,10 +11,10 @@ async function claimPilots(driver) {
         await getAllPilotsFromTab(driver);
         await switchToEnforcersTab(driver);
         await getAllPilotsFromTab(driver, counts);
-
-        await navigateBackHome(driver);
     } catch(err) {
       console.error(err);
+    } finally {
+        await navigateBackHome(driver);
     }
 
     return counts;
@@ -63,7 +63,7 @@ const waitForPilotsToBeClaimable = async (driver) => {
     // add driver wait for " Select All " button to be visible
     const selectAllText = ' Select All '; // The text you are looking for
     const selectAllLocator = By.xpath(`//*[text()='${selectAllText}']`);
-    await getElementWithWait(driver, selectAllLocator, 60000 * 5);
+    await getElementWithWait(driver, selectAllLocator, 60000);
 }
 
 const counts = [
