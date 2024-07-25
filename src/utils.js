@@ -1,6 +1,6 @@
 const { until, By } = require('selenium-webdriver');
 
-const DEFAULT_TIMEOUT = 10000; // 10 seconds
+const DEFAULT_TIMEOUT = 20000; // 20 seconds
 
 async function switchToPopupConfirmAndBack(driver, isSubmit = true, callback) {
     await driver.sleep(2000); // Wait for the connection to be established
