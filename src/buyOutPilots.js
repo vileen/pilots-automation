@@ -1,9 +1,9 @@
 const { By} = require("selenium-webdriver");
-const { navigateBackHome, getElementsWithWait, switchToPopupConfirmAndBack, findElementByTextAndClick, takeScreenshot } = require("./utils");
+const { goToGraveyard, navigateBackHome, getElementsWithWait, switchToPopupConfirmAndBack, findElementByTextAndClick, takeScreenshot } = require("./utils");
 
 async function buyOutPilots(driver, counts) {
     try {
-        await findElementByTextAndClick(driver, "Graveyard");
+        await goToGraveyard(driver);
 
         const hasKilledPilots = counts.find(group => group.name === "Killed").count > 0;
 
@@ -40,7 +40,7 @@ async function redeemPilots(driver, kind) {
 
     await driver.sleep(2000)
 
-    await findElementByTextAndClick(driver, 'OK');
+    await findElementByTextAndClick(driver, 'OK', 60000 * 2);
 }
 
 module.exports = {

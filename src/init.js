@@ -1,5 +1,5 @@
 const { By } = require("selenium-webdriver");
-const { getElementWithWait, switchToPopupConfirmAndBack, findElementByTextAndClick} = require("./utils");
+const { getElementWithWait, switchToPopupConfirmAndBack, findElementByTextAndClick, takeScreenshot } = require("./utils");
 
 async function setupWallet(driver) {
     console.log("setting up wallet");
@@ -69,6 +69,7 @@ async function setupWallet(driver) {
 
         return true;
     } catch (e) {
+        await takeScreenshot(driver, `./files/errors/init-error-${new Date().toISOString()}.png`);
         console.error(`Error during login: ${e}`);
     }
 
@@ -76,26 +77,32 @@ async function setupWallet(driver) {
 }
 
 async function connectToApp(driver) {
-    console.log("connecting to app");
+    try {
+        console.log("connecting to app");
 
-    await findElementByTextAndClick(driver, " Select Wallet ", 60000);
+        await findElementByTextAndClick(driver, " Select Wallet ", 60000);
 
-    await driver.sleep(1000);
+        await driver.sleep(1000);
 
-    const connectWalletLocator = By.xpath(`//*[text()='Connect Wallet']`);
-    await getElementWithWait(driver, connectWalletLocator);
+        const connectWalletLocator = By.xpath(`//*[text()='Connect Wallet']`);
+        await getElementWithWait(driver, connectWalletLocator);
 
-    await findElementByTextAndClick(driver, "Phantom");
+        await findElementByTextAndClick(driver, "Phantom");
 
-    await driver.sleep(2000); // Wait for the connection to be established
+        await driver.sleep(2000); // Wait for the connection to be established
 
-    await findElementByTextAndClick(driver, "Connect");
+        await findElementByTextAndClick(driver, "Connect");
 
-    await switchToPopupConfirmAndBack(driver);
+        await switchToPopupConfirmAndBack(driver);
 
-    const walletShort = process.env.WALLET_SHORT_PUBLIC_KEY;
-    const walletShortLocator = By.xpath(`//*[text()='${walletShort}']`);
-    await getElementWithWait(driver, walletShortLocator, 30000);
+        const walletShort = process.env.WALLET_SHORT_PUBLIC_KEY;
+        const walletShortLocator = By.xpath(`//*[text()='${walletShort}']`);
+        await getElementWithWait(driver, walletShortLocator, 30000);
+    } catch(err) {
+        await takeScreenshot(driver, `./files/errors/connect-error-${new Date().toISOString()}.png`);
+        console.error(err);
+        return false;
+    }
 
     return true;
 }

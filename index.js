@@ -18,6 +18,7 @@ options.addExtensions(extensionPath);
 options.addArguments('--no-sandbox');
 options.addArguments('--disable-gpu');
 options.addArguments('--disable-dev-shm-usage');
+options.addArguments("--disable-search-engine-choice-screen");
 options.addArguments('--headless=new'); // comment for debugging
 
 const extensionId = "bfnaelmomeimhlpmgjnjophhpkkoljpa"; // chrome.management.getAll() code is not working, so I hardcoded it
@@ -78,10 +79,14 @@ async function sendPilotsToMissions() {
     }
 }
 
-// Schedule a task to run every 4 hours
-cron.schedule('0 */4 * * *', () => {
-    console.log(`Running cron job at ${new Date().toISOString()}`);
-
+if (process.env.ENVIRONMENT === "development") {
     sendPilotsToMissions();
-});
+} else {
+    // Schedule a task to run every 4 hours
+    cron.schedule('0 */4 * * *', () => {
+        console.log(`Running cron job at ${new Date().toISOString()}`);
+
+        sendPilotsToMissions();
+    });
+}
 console.log("App started");

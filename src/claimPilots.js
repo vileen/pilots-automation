@@ -15,7 +15,7 @@ async function claimPilots(driver) {
         await getAllPilotsFromTab(driver, counts);
     } catch(err) {
         await takeScreenshot(driver, `./files/errors/claim-error-${new Date().toISOString()}.png`);
-      console.error(err);
+        console.error(err);
     } finally {
         await navigateBackHome(driver);
     }
@@ -24,42 +24,46 @@ async function claimPilots(driver) {
 }
 
 async function getAllPilotsFromTab(driver) {
-    await waitForPilotsToBeClaimable(driver);
+    try {
+        await waitForPilotsToBeClaimable(driver);
 
-    const selectAllText = ' Select All '; // The text you are looking for
-    const selectAllLocator = By.xpath(`//*[text()='${selectAllText}']`);
-    const selectAllElements = await getElementsWithWait(driver, selectAllLocator);
+        const selectAllText = ' Select All '; // The text you are looking for
+        const selectAllLocator = By.xpath(`//*[text()='${selectAllText}']`);
+        const selectAllElements = await getElementsWithWait(driver, selectAllLocator);
 
-    // one group of pilots could be already retrieved so Select All would be 1st element to send pilots to mission
-    const selectElement = selectAllElements.length === 2 ? selectAllElements[1] : selectAllElements[0];
-    await selectElement.click();
+        // one group of pilots could be already retrieved so Select All would be 1st element to send pilots to mission
+        const selectElement = selectAllElements.length === 2 ? selectAllElements[1] : selectAllElements[0];
+        await selectElement.click();
 
-    await findElementByTextAndClick(driver, 'Claim');
+        await findElementByTextAndClick(driver, 'Claim');
 
-    const claimPilotsText = ' Claim Pilots ';
-    const claimPilotsLocator = By.xpath(`//*[text()='${claimPilotsText}']`);
+        const claimPilotsText = ' Claim Pilots ';
+        const claimPilotsLocator = By.xpath(`//*[text()='${claimPilotsText}']`);
 
-    const claimPilotsCheck = async () => {
-        await getElementWithWait(driver, claimPilotsLocator, 60000);
+        const claimPilotsCheck = async () => {
+            await getElementWithWait(driver, claimPilotsLocator, 60000);
+        }
+
+        await switchToPopupConfirmAndBack(driver, false, claimPilotsCheck);
+
+        await countResults(driver, counts);
+
+        const claimPilotsElement = await getElementWithWait(driver, claimPilotsLocator, 60000);
+        await claimPilotsElement.click();
+
+        const pilotsClaimedText = 'Pilots Claimed';
+        const pilotsClaimedLocator = By.xpath(`//*[text()='${pilotsClaimedText}']`);
+
+        const pilotsClaimedMessageCheck = async () => {
+            await getElementWithWait(driver, pilotsClaimedLocator, 60000);
+        }
+
+        await switchToPopupConfirmAndBack(driver, false, pilotsClaimedMessageCheck);
+
+        await findElementByTextAndClick(driver, 'OK');
+    } catch(err) {
+      console.error(err);
     }
-
-    await switchToPopupConfirmAndBack(driver, false, claimPilotsCheck);
-
-    await countResults(driver, counts);
-
-    const claimPilotsElement = await getElementWithWait(driver, claimPilotsLocator, 60000);
-    await claimPilotsElement.click();
-
-    const pilotsClaimedText = 'Pilots Claimed';
-    const pilotsClaimedLocator = By.xpath(`//*[text()='${pilotsClaimedText}']`);
-
-    const pilotsClaimedMessageCheck = async () => {
-        await getElementWithWait(driver, pilotsClaimedLocator, 60000);
-    }
-
-    await switchToPopupConfirmAndBack(driver, false, pilotsClaimedMessageCheck);
-
-    await findElementByTextAndClick(driver, 'OK');
 }
 
 const waitForPilotsToBeClaimable = async (driver) => {
@@ -76,11 +80,11 @@ const counts = [
     },
     {
         name: "Captured",
-        count: 0
+        count: 5
     },
     {
         name: "Fumbled",
-        count: 0
+        count: 4
     },
     {
         name: "Expected",

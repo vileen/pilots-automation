@@ -90,7 +90,13 @@ async function takeScreenshot(driver, filePath) {
     console.log(`Screenshot saved to ${filePath}`);
 }
 
+async function goToGraveyard(driver) {
+    await driver.get('https://v2.taiyopilots.com/graveyard');
+    await findElementByTextAndClick(driver, "Connect");
+}
+
 module.exports = {
+    goToGraveyard,
     findElementByTextAndClick,
     navigateBackHome,
     getElementWithWait,
