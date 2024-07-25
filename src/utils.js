@@ -1,4 +1,5 @@
 const { until, By } = require('selenium-webdriver');
+const fs = require('fs');
 
 const DEFAULT_TIMEOUT = 20000; // 20 seconds
 
@@ -83,11 +84,18 @@ async function navigateBackHome(driver) {
     return homeIconElement.click();
 }
 
+async function takeScreenshot(driver, filePath) {
+    const base64Data = await driver.takeScreenshot();
+    fs.writeFileSync(filePath, base64Data, 'base64');
+    console.log(`Screenshot saved to ${filePath}`);
+}
+
 module.exports = {
     findElementByTextAndClick,
     navigateBackHome,
     getElementWithWait,
     getElementsWithWait,
     switchToEnforcersTab,
-    switchToPopupConfirmAndBack
+    switchToPopupConfirmAndBack,
+    takeScreenshot
 }

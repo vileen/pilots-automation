@@ -1,5 +1,5 @@
 const { By} = require("selenium-webdriver");
-const { navigateBackHome, getElementsWithWait, switchToPopupConfirmAndBack, findElementByTextAndClick } = require("./utils");
+const { navigateBackHome, getElementsWithWait, switchToPopupConfirmAndBack, findElementByTextAndClick, takeScreenshot } = require("./utils");
 
 async function buyOutPilots(driver, counts) {
     try {
@@ -17,7 +17,8 @@ async function buyOutPilots(driver, counts) {
             await redeemPilots(driver, "Captured");
         }
     } catch(err) {
-      console.error(err);
+        await takeScreenshot(driver, `./files/errors/buyout-error-${new Date().toISOString()}.png`);
+        console.error(err);
     } finally {
         await navigateBackHome(driver);
     }

@@ -1,4 +1,6 @@
-const { navigateBackHome, switchToEnforcersTab, getElementsWithWait, getElementWithWait, switchToPopupConfirmAndBack, findElementByTextAndClick } = require("./utils");
+const { navigateBackHome, switchToEnforcersTab, getElementsWithWait, getElementWithWait, switchToPopupConfirmAndBack, findElementByTextAndClick,
+    takeScreenshot
+} = require("./utils");
 const { By } = require("selenium-webdriver");
 const { countResults } = require("./countResults");
 
@@ -12,6 +14,7 @@ async function claimPilots(driver) {
         await switchToEnforcersTab(driver);
         await getAllPilotsFromTab(driver, counts);
     } catch(err) {
+        await takeScreenshot(driver, `./files/errors/claim-error-${new Date().toISOString()}.png`);
       console.error(err);
     } finally {
         await navigateBackHome(driver);

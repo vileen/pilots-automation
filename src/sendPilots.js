@@ -1,5 +1,5 @@
 const { By } = require("selenium-webdriver");
-const { navigateBackHome, getElementWithWait, switchToPopupConfirmAndBack, switchToEnforcersTab, findElementByTextAndClick } = require("./utils");
+const { navigateBackHome, getElementWithWait, switchToPopupConfirmAndBack, switchToEnforcersTab, findElementByTextAndClick, takeScreenshot } = require("./utils");
 
 async function sendPilots(driver) {
     try {
@@ -17,7 +17,8 @@ async function sendPilots(driver) {
 
         await sendForTab(driver);
     } catch(err) {
-      console.error(err);
+        await takeScreenshot(driver, `./files/errors/send-error-${new Date().toISOString()}.png`);
+        console.error(err);
     } finally {
         await navigateBackHome(driver);
     }
