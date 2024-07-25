@@ -34,11 +34,14 @@ async function sendPilotsToMissions() {
         // Allow some time for the extension to load
         await driver.sleep(1000);
 
+        console.log("before getAllWindowHandles");
         // switch to first tab since phantom automatically opens a new tab
         const tabs = await driver.getAllWindowHandles();
+        console.log("tabs", tabs);
         await driver.switchTo().window(tabs[1]);
         await driver.close();
         await driver.switchTo().window(tabs[0]);
+        console.log("after switches");
 
         // Get the extension ID
         // const extensions = await driver.executeScript('return chrome.management.getAll()');
