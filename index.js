@@ -19,26 +19,36 @@ options.addArguments('--no-sandbox');
 options.addArguments('--disable-gpu');
 options.addArguments('--disable-dev-shm-usage');
 options.addArguments("--disable-search-engine-choice-screen");
+options.addArguments('window-size=1280,800'); // Set the desired width and height
 options.addArguments('--headless=new'); // comment for debugging
 
 const extensionId = "bfnaelmomeimhlpmgjnjophhpkkoljpa"; // chrome.management.getAll() code is not working, so I hardcoded it
 
 async function sendPilotsToMissions() {
     // Initialize the Chrome WebDriver with the options
-    const driver = await new Builder()
-        .forBrowser('chrome')
-        .setChromeOptions(options)
-        .build();
+    let driver;
+    if (process.env.ENVIRONMENT === "development") {
+        driver = await new Builder()
+            .forBrowser('chrome')
+            .setChromeOptions(options)
+            .build();
+    } else {
+        driver = await new Builder()
+            .forBrowser('chrome')
+            .usingServer('http://localhost:4444/wd/hub')  // Connect to Docker container
+            .setChromeOptions(options)
+            .build();
+    }
 
     try {
         // Allow some time for the extension to load
-        await driver.sleep(1000);
+        await driver.sleep(5000);
 
         // switch to first tab since phantom automatically opens a new tab
-        const tabs = await driver.getAllWindowHandles();
-        await driver.switchTo().window(tabs[1]);
+        const handles = await driver.getAllWindowHandles();
+        await driver.switchTo().window(handles[1]);
         await driver.close();
-        await driver.switchTo().window(tabs[0]);
+        await driver.switchTo().window(handles[0]);
 
         // Get the extension ID
         // const extensions = await driver.executeScript('return chrome.management.getAll()');
@@ -79,15 +89,14 @@ async function sendPilotsToMissions() {
     }
 }
 
-// if (process.env.ENVIRONMENT === "development") {
-//     sendPilotsToMissions();
-// } else {
-//     // Schedule a task to run every 4 hours
-//     cron.schedule('0 */4 * * *', () => {
-//         console.log(`Running cron job at ${new Date().toISOString()}`);
-//
-//         sendPilotsToMissions();
-//     });
-// }
-sendPilotsToMissions();
+if (process.env.ENVIRONMENT === "development") {
+    sendPilotsToMissions();
+} else {
+    // Schedule a task to run every 4 hours
+    cron.schedule('0 */4 * * *', () => {
+        console.log(`Running cron job at ${new Date().toISOString()}`);
+
+        sendPilotsToMissions();
+    });
+}
 console.log("App started");
