@@ -6,7 +6,8 @@ function saveDataToCsv(data) {
     // Create a CSV writer instance
     const csvWriter = createCsvWriter({
         path, // Path to the output CSV file
-        header: ["name", "count"]
+        header: ["name", "count"],
+        append: true
     });
 
     // Write the data to the CSV file
