@@ -97,7 +97,7 @@ async function connectToApp(driver) {
 
         const walletShort = process.env.WALLET_SHORT_PUBLIC_KEY;
         const walletShortLocator = By.xpath(`//*[text()='${walletShort}']`);
-        await getElementWithWait(driver, walletShortLocator, 30000);
+        await getElementWithWait(driver, walletShortLocator, 60000);
     } catch(err) {
         await takeScreenshot(driver, `./files/errors/connect-error-${new Date().toISOString()}.png`);
         console.error(err);

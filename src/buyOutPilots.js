@@ -3,6 +3,7 @@ const { goToGraveyard, navigateBackHome, getElementsWithWait, switchToPopupConfi
 
 async function buyOutPilots(driver, counts) {
     try {
+        console.log("buying out pilots");
         await goToGraveyard(driver);
 
         const hasKilledPilots = counts.find(group => group.name === "Killed").count > 0;

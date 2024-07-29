@@ -20,11 +20,14 @@ options.addArguments('--disable-gpu');
 options.addArguments('--disable-dev-shm-usage');
 options.addArguments("--disable-search-engine-choice-screen");
 options.addArguments('window-size=1280,800'); // Set the desired width and height
-options.addArguments('--headless=new'); // comment for debugging
+if (process.env.ENVIRONMENT !== "development") {
+    options.addArguments('--headless=new'); // comment for debugging
+}
 
 const extensionId = "bfnaelmomeimhlpmgjnjophhpkkoljpa"; // chrome.management.getAll() code is not working, so I hardcoded it
 
 async function sendPilotsToMissions() {
+    let result = false;
     // Initialize the Chrome WebDriver with the options
     let driver;
     if (process.env.ENVIRONMENT === "development") {
@@ -74,11 +77,13 @@ async function sendPilotsToMissions() {
                 console.log("starting");
 
                 const counts = await claimPilots(driver);
-                await buyOutPilots(driver, counts);
-                await sendPilots(driver);
-                await saveDataToCsv(counts);
+                // await buyOutPilots(driver, counts);
+                // await sendPilots(driver);
+                // await saveDataToCsv(counts);
 
                 console.log("success");
+
+                result = true;
             }
         } else {
             throw new Error("Failed to setup wallet")
@@ -87,16 +92,33 @@ async function sendPilotsToMissions() {
         console.log("finished");
         await driver.quit();
     }
+    return result;
 }
 
-if (process.env.ENVIRONMENT === "development") {
-    sendPilotsToMissions();
-} else {
+if (process.env.ENVIRONMENT !== "development") {
     // Schedule a task to run every 4 hours
-    cron.schedule('0 */4 * * *', () => {
+    cron.schedule('0 */4 * * *', async () => {
         console.log(`Running cron job at ${new Date().toISOString()}`);
 
-        sendPilotsToMissions();
+        let retries = 3;
+        while (retries > 0) {
+            try {
+                console.log(`retries left ${retries}`)
+                const result = await sendPilotsToMissions();
+                if (result) {
+                    break;
+                } else {
+                    console.log("retrying cause of error");
+                    retries--;
+                }
+            } catch (err) {
+                console.error(err);
+                console.log("retrying cause of error");
+                retries--;
+            }
+        }
     });
 }
+
 console.log("App started");
+sendPilotsToMissions();
