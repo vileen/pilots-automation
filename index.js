@@ -1,6 +1,4 @@
 require('@dotenvx/dotenvx').config();
-const { Builder } = require('selenium-webdriver');
-const chrome = require('selenium-webdriver/chrome');
 const path = require('path');
 const { setupWallet, connectToApp } = require("./src/init");
 const { claimPilots } = require("./src/claimPilots");
@@ -8,117 +6,102 @@ const { sendPilots } = require("./src/sendPilots");
 const { buyOutPilots } = require("./src/buyOutPilots");
 const { saveDataToCsv } = require("./src/saveToCsv");
 const cron = require('node-cron');
+const puppeteer = require('puppeteer');
+const { sleep } = require("./src/newUtils");
+
+const isDev = process.env.ENVIRONMENT === "development";
 
 // Path to the Phantom wallet extension .crx file
-const extensionPath = path.resolve('./files/phantom.crx');
-
-// Configure Chrome options to load the extension
-const options = new chrome.Options();
-options.addExtensions(extensionPath);
-options.addArguments('--no-sandbox');
-options.addArguments('--disable-gpu');
-options.addArguments('--disable-dev-shm-usage');
-options.addArguments("--disable-search-engine-choice-screen");
-options.addArguments('window-size=1280,800'); // Set the desired width and height
-if (process.env.ENVIRONMENT !== "development") {
-    options.addArguments('--headless=new'); // comment for debugging
-}
-
-const extensionId = "bfnaelmomeimhlpmgjnjophhpkkoljpa"; // chrome.management.getAll() code is not working, so I hardcoded it
+const extensionPath = path.resolve('./files/phantom');
 
 async function sendPilotsToMissions() {
-    let result = false;
-    // Initialize the Chrome WebDriver with the options
-    let driver;
-    if (process.env.ENVIRONMENT === "development") {
-        driver = await new Builder()
-            .forBrowser('chrome')
-            .setChromeOptions(options)
-            .build();
-    } else {
-        driver = await new Builder()
-            .forBrowser('chrome')
-            .usingServer('http://localhost:4444/wd/hub')  // Connect to Docker container
-            .setChromeOptions(options)
-            .build();
-    }
+    const browser = await puppeteer.launch({
+        headless: !isDev, // Puppeteer must be non-headless to capture the video
+        args: ['--no-sandbox', '--disable-setuid-sandbox', '--start-maximized', `--disable-extensions-except=${extensionPath}`, `--load-extension=${extensionPath}`, '--enable-automation'],
+    });
+    const page = await browser.newPage();
+    await page.setViewport({ width: 1280, height: 720 });
+
+    // // Start screen recording using Puppeteer
+    // const puppeteerVideo = require('puppeteer-video-recorder');
+    // const recorder = new puppeteerVideo.Recorder(page);
+    // await recorder.start('./files/videos/test-recording.mp4');
 
     try {
-        // Allow some time for the extension to load
-        await driver.sleep(5000);
+        // allow extension to load
+        await sleep(4000);
 
-        // switch to first tab since phantom automatically opens a new tab
-        const handles = await driver.getAllWindowHandles();
-        await driver.switchTo().window(handles[1]);
-        await driver.close();
-        await driver.switchTo().window(handles[0]);
+        // // Switch to the Phantom extension popup
+        const allPages = await browser.pages();
 
-        // Get the extension ID
-        // const extensions = await driver.executeScript('return chrome.management.getAll()');
-        // const phantomExtension = extensions.find(ext => ext.name === 'Phantom');
-        // const extensionId = phantomExtension.id;
+        const extensionPage = allPages.find(p => {
+            return p.url().startsWith('chrome-extension://');
+        });
+        if (extensionPage) {
+            // Switch to the extension url to avoid switching target
+            await page.goto(extensionPage.url());
+            await page.bringToFront();
+        }
 
-        // Switch to the Phantom extension popup
-        await driver.get(`chrome-extension://${extensionId}/onboarding.html`);
+        // Close all pages except the current one
+        for (const p of allPages) {
+            if (p !== page) {
+                await p.close();
+            }
+        }
 
-        // Allow some time for the extension to load
-        await driver.sleep(1000);
+        // sometimes setup gets stuck on get started button
+        const isSetup = async () => {
+            let retryCount = 3;
+            while (retryCount > 0) {
+                try {
+                    return await setupWallet(page);
+                } catch (e) {
+                    await page.reload();
+                    console.log(`${retryCount} attempts left`);
+                    retryCount--;
+                }
+            }
+        };
 
-        const isSetup = await setupWallet(driver);
-
-        if (isSetup) {
+        const result = await isSetup();
+        if (result) {
             // Now you can navigate to your web app and interact with it
-            await driver.get('https://v2.taiyopilots.com/');
+            await page.goto('https://v2.taiyopilots.com/');
 
             // Perform actions on the web app
-            const isConnected = await connectToApp(driver);
+            const isConnected = await connectToApp(browser, page);
 
             if (isConnected) {
                 console.log("starting");
 
-                const counts = await claimPilots(driver);
-                // await buyOutPilots(driver, counts);
-                // await sendPilots(driver);
-                // await saveDataToCsv(counts);
+                await sleep(2000);
+
+                const counts = await claimPilots(browser, page);
+                await buyOutPilots(browser, page, counts);
+                await sendPilots(browser, page);
+                await saveDataToCsv(counts);
 
                 console.log("success");
-
-                result = true;
             }
         } else {
             throw new Error("Failed to setup wallet")
         }
     } finally {
         console.log("finished");
-        await driver.quit();
+        await browser.close();
     }
-    return result;
 }
 
-if (process.env.ENVIRONMENT !== "development") {
+if (!isDev) {
     // Schedule a task to run every 4 hours
     cron.schedule('0 */4 * * *', async () => {
         console.log(`Running cron job at ${new Date().toISOString()}`);
 
-        let retries = 3;
-        while (retries > 0) {
-            try {
-                console.log(`retries left ${retries}`)
-                const result = await sendPilotsToMissions();
-                if (result) {
-                    break;
-                } else {
-                    console.log("retrying cause of error");
-                    retries--;
-                }
-            } catch (err) {
-                console.error(err);
-                console.log("retrying cause of error");
-                retries--;
-            }
-        }
+        sendPilotsToMissions();
     });
+} else {
+    sendPilotsToMissions();
 }
 
 console.log("App started");
-sendPilotsToMissions();

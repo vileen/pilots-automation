@@ -1,32 +1,31 @@
-const { By } = require("selenium-webdriver");
-const { getElementWithWait } = require("./utils");
+const { findElementByText } = require("./newUtils");
 
-async function countResults(driver, counts) {
+async function countResults(page, counts) {
     for (const group of counts) {
-        group.count += await countGroup(driver, group.name);
+        group.count += await countGroup(page, group.name);
     }
 }
 
-async function countGroup(driver, group) {
+async function countGroup(page, group) {
     try {
-        const outcomesText = ' Outcomes '; // The text you are looking for
-        const outcomesLocator = By.xpath(`//*[text()='${outcomesText}']/following-sibling::*[1]`); // The text you are looking for
-        const outcomesElement = await getElementWithWait(driver, outcomesLocator);
+        const outcomes = await findElementByText(page, " Outcomes ");
+        const outcomesElement = await page.evaluateHandle(element => {
+            return element.nextElementSibling;
+        }, outcomes);
 
-        const groupText = `${group}`; // The text you are looking for
-        const groupLocator = By.xpath(`//*[text()='${groupText}']`);
-        const elements = await outcomesElement.findElements(groupLocator);
+        const matchingTexts = await page.evaluate((parent, text) => {
+            const matchingElements = [];
 
-        let count = 0;
-        for (let i = 0; i < elements.length; i++) {
-            const element = elements[i];
-            const elementText = await element.getText();
-            if (elementText === group) {
-                count++;
+            const elements = parent.querySelectorAll('*');
+            for (const element of elements) {
+                if (element.textContent.trim() === text) {
+                    matchingElements.push(element);
+                }
             }
-        }
+            return matchingElements;
+        }, outcomesElement, group);
 
-        return count;
+        return matchingTexts.length;
     } catch(err) {
         return 0;
     }

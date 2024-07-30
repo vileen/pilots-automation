@@ -1,6 +1,8 @@
 node_modules/
 .idea/
 files/log.csv
+files/phantom/
 files/errors/*.png
+files/debug/*.png
 .env.local
 recovery

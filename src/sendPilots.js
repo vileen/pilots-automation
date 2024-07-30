@@ -1,73 +1,76 @@
-const { By, until } = require("selenium-webdriver");
-const { navigateBackHome, getElementWithWait, getElementsWithWait, switchToPopupConfirmAndBack, switchToEnforcersTab, findElementByTextAndClick, takeScreenshot, reconnect } = require("./utils");
+const { findElementByText, findElementByTextAndClick, navigateBackHome, switchToPopupConfirmAndBack, takeScreenshot, DEFAULT_TIMEOUT,
+    switchToTab, sleep
+} = require("./newUtils");
 
-async function sendPilots(driver) {
+async function sendPilots(browser, page) {
     try {
         console.log("sending pilots");
 
         console.log("going to ops hub");
-        const opsHubText = 'Operators Hub'; // The text you are looking for
-        const opsHubLocator = By.xpath(`//*[text()='${opsHubText}']`);
-        const opsHubElement = await getElementWithWait(driver, opsHubLocator);
-        const opsHubContainer = await opsHubElement.findElement(By.xpath('..'))
-        const opsHubTile = await opsHubContainer.findElement(By.xpath('..'))
-        await opsHubTile.click();
-
-        console.log("checking for deploy pilots");
-        const deployPilotsText = 'Deploy Pilots'; // The text you are looking for
-        const deployPilotsLocator = By.xpath(`//*[text()='${deployPilotsText}']`);
-        await getElementWithWait(driver, deployPilotsLocator);
-
-        console.log("reconnecting");
-        await reconnect(driver);
+        await findElementByTextAndClick(page, "Operators Hub");
 
         console.log("sending");
-        await sendForTab(driver);
+        await switchToTab(browser, page, "Rebels");
+        await sendForTab(browser, page);
 
-        await switchToEnforcersTab(driver);
-
-        await sendForTab(driver);
+        await switchToTab(browser, page, "Enforcers");
+        await sendForTab(browser, page);
     } catch(err) {
-        await takeScreenshot(driver, `./files/errors/send-for-tab-error-${new Date().toISOString()}.png`);
+        await takeScreenshot(page, `./files/errors/send-for-tab-error-${new Date().toISOString()}.png`);
         console.error(err);
     } finally {
-        await navigateBackHome(driver);
+        await navigateBackHome(browser, page);
     }
 }
 
-async function sendForTab(driver) {
+async function sendForTab(browser, page) {
     try {
-        await findElementByTextAndClick(driver, ' Select All ');
+        const deployPilotsTitle = await findElementByText(page, "Deploy Pilots");
+        const parent = await page.evaluateHandle(el => el.parentElement.parentElement, deployPilotsTitle);
+        const selectAllButton = await page.evaluateHandle((parent, text) => {
+            const elements = parent.querySelectorAll('*');
+            for (let element of elements) {
+                if (element.textContent.trim() === text) {
+                    return element;
+                }
+            }
+            return null;
+        }, parent, 'Select All');
+        await page.evaluate(element => element.click(), selectAllButton);
 
-        // for whatever reason this is not working...
-        // Find the image element by its alt attribute using CSS selector
-        const imageLocator = By.css('img[alt="Chest Icon"]');
-        const imageElements = await getElementsWithWait(driver, imageLocator);
-        const deployButton = await imageElements[0].findElement(By.xpath('..'));
-        console.log("waiting for deploy button to be visible");
-        await driver.wait(until.elementIsVisible(deployButton), 30000);
-        console.log("waiting for deploy button to be enabled");
-        await driver.wait(until.elementIsEnabled(deployButton), 30000);
+        await sleep(1000);
 
-        console.log("click");
-        await deployButton.click();
-        console.log("successful click");
+        const deployButton = await page.evaluateHandle((parent, text) => {
+            const elements = parent.querySelectorAll('*');
+            for (let element of elements) {
+                if (element.textContent.trim().includes(text)) {
+                    return element.querySelectorAll('button')[1];
+                }
+            }
+            return null;
+        }, parent, 'Deploy (');
+        await page.evaluate(element => element.click(), deployButton);
 
         console.log("find i understand and click");
-        await findElementByTextAndClick(driver, 'I understand');
+        await findElementByTextAndClick(page, 'I understand');
         console.log("i understand success");
 
+        await sleep(3000);
+
         const noPilotsMessageCheck = async () => {
-            const noPilotsText = 'No Usable Pilots';
-            const noPilotsLocator = By.xpath(`//*[text()='${noPilotsText}']`);
-            await getElementWithWait(driver, noPilotsLocator, 60000 * 2);
+            console.log("waiting for no usable pilots message");
+            await findElementByText(page, 'No Usable Pilots', 60000 * 5);
         }
 
-        await switchToPopupConfirmAndBack(driver, false, noPilotsMessageCheck);
+        await sleep(2000);
 
-        await findElementByTextAndClick(driver, 'OK');
+        await switchToPopupConfirmAndBack(browser, page, false, noPilotsMessageCheck);
+
+        await sleep(2000);
+
+        await findElementByTextAndClick(page, 'OK');
     } catch(err) {
-        await takeScreenshot(driver, `./files/errors/send-for-tab-error-${new Date().toISOString()}.png`);
+        await takeScreenshot(page, `./files/errors/send-for-tab-error-${new Date().toISOString()}.png`);
         console.error(err);
     }
 }

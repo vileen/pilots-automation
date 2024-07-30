@@ -1,35 +1,32 @@
-const { By } = require("selenium-webdriver");
-const { getElementWithWait, switchToPopupConfirmAndBack, findElementByTextAndClick, takeScreenshot } = require("./utils");
+const { findElementByText, findElementByTextAndClick, DEFAULT_TIMEOUT, takeScreenshot, sleep, switchToPopupConfirmAndBack } = require("./newUtils");
 
-async function setupWallet(driver) {
+async function setupWallet(page) {
     console.log("setting up wallet");
     try {
-        await findElementByTextAndClick(driver, "Import an existing wallet");
-        await findElementByTextAndClick(driver, "Import Private Key");
+        await findElementByTextAndClick(page, "Import an existing wallet");
+        await findElementByTextAndClick(page, "Import Private Key");
 
         // Define the placeholder text and the input value
         const namePlaceholderText = 'Name'; // The placeholder attribute value
         const nameValue = 'main'; // The value you want to type
 
         // Locate the input element by its placeholder attribute
-        const nameInputLocator = By.css(`input[placeholder='${namePlaceholderText}']`)
-        const nameInputElement = await getElementWithWait(driver, nameInputLocator);
-
-        // Type into the input element
-        await nameInputElement.sendKeys(nameValue);
+        const nameInputElement = await page.waitForSelector(`input[placeholder="${namePlaceholderText}"]`, { timeout: DEFAULT_TIMEOUT });
+        if (nameInputElement) {
+            await nameInputElement.type(nameValue);
+        }
 
         // Define the placeholder text and the input value
         const privateKeyText = 'Private key'; // The placeholder attribute value
         const privateKeyValue = process.env.WALLET_PRIVATE_KEY; // The value you want to type
 
         // Locate the input element by its placeholder attribute
-        const privateKeyInputLocator = By.css(`textarea[placeholder='${privateKeyText}']`)
-        const privateKeyInputElement = await getElementWithWait(driver, privateKeyInputLocator);
+        const privateKeyInputElement = await page.waitForSelector(`textarea[placeholder="${privateKeyText}"]`, { timeout: DEFAULT_TIMEOUT });
+        if (privateKeyInputElement) {
+            await privateKeyInputElement.type(privateKeyValue);
+        }
 
-        // Type into the input element
-        await privateKeyInputElement.sendKeys(privateKeyValue);
-
-        await findElementByTextAndClick(driver, "Import");
+        await findElementByTextAndClick(page, "Import", undefined, 'button[type="submit"]');
 
         // Define the placeholder text and the input value
         const passwordPlaceholderText = 'Password'; // The placeholder attribute value
@@ -37,70 +34,62 @@ async function setupWallet(driver) {
         const passwordValue = process.env.WALLET_PASSWORD; // The value you want to type
 
         // Locate the input element by its placeholder attribute
-        const passwordInputLocator = By.css(`input[placeholder='${passwordPlaceholderText}']`);
-        const passwordInputElement = await getElementWithWait(driver, passwordInputLocator);
-
-        // Type into the input element
-        await passwordInputElement.sendKeys(passwordValue);
+        const passwordInputElement = await page.waitForSelector(`input[placeholder="${passwordPlaceholderText}"]`, { timeout: DEFAULT_TIMEOUT });
+        if (passwordInputElement) {
+            await passwordInputElement.type(passwordValue);
+        }
 
         // Locate the input element by its placeholder attribute
-        const confirmPasswordInputLocator = By.css(`input[placeholder='${confirmPasswordPlaceholderText}']`);
-        const confirmPasswordInputElement = await getElementWithWait(driver, confirmPasswordInputLocator);
+        const confirmPasswordInputElement = await page.waitForSelector(`input[placeholder="${confirmPasswordPlaceholderText}"]`, { timeout: DEFAULT_TIMEOUT });
+        if (confirmPasswordInputElement) {
+            await confirmPasswordInputElement.type(passwordValue);
+        }
 
-        // Type into the input element
-        await confirmPasswordInputElement.sendKeys(passwordValue);
+        const termsOfServiceCheckbox = 'input[type="checkbox"]';
+        await page.waitForSelector(termsOfServiceCheckbox);
+        await page.click(termsOfServiceCheckbox);
 
-        // Locate the parent element (modify the locator as needed)
-        const termsOfServiceCheckboxParentLocator = By.css('[data-reach-custom-checkbox-container]');
-        const termsOfServiceCheckboxParent = await getElementWithWait(driver, termsOfServiceCheckboxParentLocator);
-        // Locate the first child element using CSS selector
-        const termsOfServiceCheckbox = await termsOfServiceCheckboxParent.findElement(By.css(':first-child'));
-        termsOfServiceCheckbox.click();
+        await sleep(1000);
 
-        const continueButtonText = "Continue";
-        const continueButtonLocator = By.xpath(`//*[text()='${continueButtonText}']`);
-        const continueButton = await getElementWithWait(driver, continueButtonLocator);
-        await continueButton.click();
+        await findElementByTextAndClick(page, "Continue");
 
-        const getStartedButtonText = "Get Started";
-        const getStartedButtonLocator = By.xpath(`//*[text()='${getStartedButtonText}']`);
-        await getElementWithWait(driver, getStartedButtonLocator, 60000); // just wait for element, don't click to avoid closing target window
-        // await getStartedButton.click();
+        await sleep(1000);
+
+        await findElementByText(page, "Get Started", 60000 * 3);
 
         return true;
     } catch (e) {
-        await takeScreenshot(driver, `./files/errors/init-error-${new Date().toISOString()}.png`);
+        await takeScreenshot(page, `./files/errors/init-error-${new Date().toISOString()}.png`);
         console.error(`Error during login: ${e}`);
     }
 
     return false;
 }
 
-async function connectToApp(driver) {
+async function connectToApp(browser, page) {
     try {
         console.log("connecting to app");
 
-        await findElementByTextAndClick(driver, " Select Wallet ", 60000);
+        await sleep(3000);
 
-        await driver.sleep(1000);
+        await findElementByTextAndClick(page, " Select Wallet ", 60000);
 
-        const connectWalletLocator = By.xpath(`//*[text()='Connect Wallet']`);
-        await getElementWithWait(driver, connectWalletLocator);
+        await sleep(1000);
 
-        await findElementByTextAndClick(driver, "Phantom");
+        await findElementByText(page, "Connect Wallet");
 
-        await driver.sleep(2000); // Wait for the connection to be established
+        await findElementByTextAndClick(page, "Phantom");
 
-        await findElementByTextAndClick(driver, "Connect");
+        await sleep(2000); // Wait for the connection to be established
 
-        await switchToPopupConfirmAndBack(driver);
+        await findElementByTextAndClick(page, "Connect");
 
-        const walletShort = process.env.WALLET_SHORT_PUBLIC_KEY;
-        const walletShortLocator = By.xpath(`//*[text()='${walletShort}']`);
-        await getElementWithWait(driver, walletShortLocator, 60000);
+        await switchToPopupConfirmAndBack(browser, page, true);
+
+        await findElementByText(page, process.env.WALLET_SHORT_PUBLIC_KEY, 60000);
     } catch(err) {
-        await takeScreenshot(driver, `./files/errors/connect-error-${new Date().toISOString()}.png`);
         console.error(err);
+        await takeScreenshot(page, `./files/errors/connect-error-${new Date().toISOString()}.png`);
         return false;
     }
 

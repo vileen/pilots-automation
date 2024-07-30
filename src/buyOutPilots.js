@@ -1,47 +1,52 @@
-const { By} = require("selenium-webdriver");
-const { goToGraveyard, navigateBackHome, getElementsWithWait, switchToPopupConfirmAndBack, findElementByTextAndClick, takeScreenshot } = require("./utils");
+const { navigateBackHome, navigateToGraveyard, takeScreenshot, findElementByText, findElementByTextAndClick, switchToPopupConfirmAndBack, sleep } = require("./newUtils");
 
-async function buyOutPilots(driver, counts) {
+async function buyOutPilots(browser, page, counts) {
     try {
         console.log("buying out pilots");
-        await goToGraveyard(driver);
+        await navigateToGraveyard(browser, page);
+
+        await sleep(5000)
 
         const hasKilledPilots = counts.find(group => group.name === "Killed").count > 0;
 
         if (hasKilledPilots) {
-            await redeemPilots(driver, "Killed");
+            await redeemPilots(browser, page, "Killed");
         }
 
         const hasCapturedPilots = counts.find(group => group.name === "Captured").count > 0;
 
         if (hasCapturedPilots) {
-            await redeemPilots(driver, "Captured");
+            await redeemPilots(browser, page, "Captured");
         }
     } catch(err) {
-        await takeScreenshot(driver, `./files/errors/buyout-error-${new Date().toISOString()}.png`);
+        await takeScreenshot(page, `./files/errors/buyout-error-${new Date().toISOString()}.png`);
         console.error(err);
     } finally {
-        await navigateBackHome(driver);
+        await navigateBackHome(browser, page);
     }
 }
 
-async function redeemPilots(driver, kind) {
-    const selectAllText = " Select All ";
-    const selectAllLocator = By.xpath(`//*[text()='${selectAllText}']`);
-    const selectAllButtons =  await getElementsWithWait(driver, selectAllLocator, 60000);
-    if (!selectAllButtons.length) {
-        return false; // sth went wrong
-    }
+async function redeemPilots(browser, page, kind) {
+    const text = kind === "Killed" ? "Graveyard" : "Captured";
+    const pilotsStatus = await findElementByText(page, text);
+    const parent = await page.evaluateHandle(el => el.parentElement.parentElement, pilotsStatus);
+    const selectAllButton = await page.evaluateHandle((parent, text) => {
+        const elements = parent.querySelectorAll('*');
+        for (const element of elements) {
+            if (element.textContent.trim() === text) {
+                return element;
+            }
+        }
+        return null;
+    }, parent, 'Select All');
+    await page.evaluate(element => element.click(), selectAllButton);
+    await findElementByTextAndClick(page, kind === "Killed" ? "Revive" : "Release", undefined, undefined, true);
 
-    await selectAllButtons[0].click();
+    await switchToPopupConfirmAndBack(browser, page, false);
 
-    await findElementByTextAndClick(driver, kind === "Killed" ? "Revive" : "Release");
+    await sleep(2000)
 
-    await switchToPopupConfirmAndBack(driver, false);
-
-    await driver.sleep(2000)
-
-    await findElementByTextAndClick(driver, 'OK', 60000 * 2);
+    await findElementByTextAndClick(page, 'OK', 60000 * 3);
 }
 
 module.exports = {
